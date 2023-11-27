@@ -41,22 +41,22 @@ def halo_effect(image, face):
                 start_point = end_point
                 
     return image 
-os.chdir(r"C:\Users\tonyt\OneDrive\Documents\GitHub\EE371Q_project\images") 
-image = cv2.imread('joey.jpg')
-#you can read and turn to gray in one step image_bird = cv2.imread('bird.jpg', cv2.IMREAD_GRAYSCALE) 
+def run_halo(filename):
+    image = cv2.imread('joey.jpg')
+    #you can read and turn to gray in one step image_bird = cv2.imread('bird.jpg', cv2.IMREAD_GRAYSCALE) 
 
 
 
-gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-face = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
+    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    face = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
 
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-halo_image = halo_effect(image, face)
-plt.figure(figsize=(20,10))
-plt.imshow(halo_image)
-plt.axis('off')
-plt.show()
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    halo_image = halo_effect(image, face)
+    plt.figure(figsize=(20,10))
+    plt.imshow(halo_image)
+    plt.axis('off')
+    plt.show()
 
 
