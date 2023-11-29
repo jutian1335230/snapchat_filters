@@ -14,22 +14,45 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(1000, 1000)
+        Dialog.resize(1045, 1011)
         self.HaloBtn = QtWidgets.QPushButton(Dialog)
         self.HaloBtn.setGeometry(QtCore.QRect(30, 900, 141, 71))
         self.HaloBtn.setObjectName("HaloBtn")
         self.ImageLabel = QtWidgets.QLabel(Dialog)
-        self.ImageLabel.setGeometry(QtCore.QRect(140, 290, 411, 521))
+        self.ImageLabel.setGeometry(QtCore.QRect(340, 240, 381, 351))
+        self.ImageLabel.setFrameShape(QtWidgets.QFrame.Box)
         self.ImageLabel.setText("")
         self.ImageLabel.setPixmap(QtGui.QPixmap("C:\\Users\\tonyt\\Downloads/pngtree-search-icon-image_1344447.jpg"))
+        self.ImageLabel.setScaledContents(True)
+        self.ImageLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.ImageLabel.setObjectName("ImageLabel")
         self.UploadImageBtn = QtWidgets.QPushButton(Dialog)
-        self.UploadImageBtn.setGeometry(QtCore.QRect(230, 110, 191, 51))
+        self.UploadImageBtn.setGeometry(QtCore.QRect(430, 110, 191, 51))
         self.UploadImageBtn.setObjectName("UploadImageBtn")
+        self.BWfilter = QtWidgets.QPushButton(Dialog)
+        self.BWfilter.setGeometry(QtCore.QRect(200, 900, 141, 71))
+        self.BWfilter.setObjectName("BWfilter")
+        self.Inverted = QtWidgets.QPushButton(Dialog)
+        self.Inverted.setGeometry(QtCore.QRect(370, 900, 141, 71))
+        self.Inverted.setObjectName("Inverted")
+        self.Sketchy = QtWidgets.QPushButton(Dialog)
+        self.Sketchy.setGeometry(QtCore.QRect(540, 900, 141, 71))
+        self.Sketchy.setObjectName("Sketchy")
+        self.Old = QtWidgets.QPushButton(Dialog)
+        self.Old.setGeometry(QtCore.QRect(710, 900, 141, 71))
+        self.Old.setObjectName("Old")
+        self.Film = QtWidgets.QPushButton(Dialog)
+        self.Film.setGeometry(QtCore.QRect(880, 900, 141, 71))
+        self.Film.setObjectName("Film")
 
         self.retranslateUi(Dialog)
         self.HaloBtn.clicked.connect(Dialog.accept) # type: ignore
         self.UploadImageBtn.clicked.connect(Dialog.show) # type: ignore
+        self.BWfilter.clicked.connect(Dialog.accept) # type: ignore
+        self.Inverted.clicked.connect(Dialog.accept) # type: ignore
+        self.Sketchy.clicked.connect(Dialog.accept) # type: ignore
+        self.Old.clicked.connect(Dialog.accept) # type: ignore
+        self.Film.clicked.connect(Dialog.accept) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
@@ -37,6 +60,11 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.HaloBtn.setText(_translate("Dialog", "Show Halo"))
         self.UploadImageBtn.setText(_translate("Dialog", "Upload Image"))
+        self.BWfilter.setText(_translate("Dialog", "Black and White TV filter"))
+        self.Inverted.setText(_translate("Dialog", "Inverted Filter"))
+        self.Sketchy.setText(_translate("Dialog", "Sketchy Filter"))
+        self.Old.setText(_translate("Dialog", "Old Filter"))
+        self.Film.setText(_translate("Dialog", "Film Filter"))
 
 
 if __name__ == "__main__":
