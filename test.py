@@ -44,6 +44,10 @@ class Ui_Dialog(object):
         self.Film = QtWidgets.QPushButton(Dialog)
         self.Film.setGeometry(QtCore.QRect(880, 900, 141, 71))
         self.Film.setObjectName("Film")
+        self.horizontalSlider = QtWidgets.QSlider(Dialog)
+        self.horizontalSlider.setGeometry(QtCore.QRect(230, 740, 591, 20))
+        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalSlider.setObjectName("horizontalSlider")
 
         self.retranslateUi(Dialog)
         self.HaloBtn.clicked.connect(Dialog.accept) # type: ignore
@@ -53,6 +57,7 @@ class Ui_Dialog(object):
         self.Sketchy.clicked.connect(Dialog.accept) # type: ignore
         self.Old.clicked.connect(Dialog.accept) # type: ignore
         self.Film.clicked.connect(Dialog.accept) # type: ignore
+        self.horizontalSlider.valueChanged['int'].connect(Dialog.accept) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):

@@ -27,11 +27,11 @@ def show_warning(prompt):
     msg_box.setText(prompt)
     msg_box.exec_()
 
-def halo_effect(image, face):
+def halo_effect(image, face, alpha):
     for (x, y, w, h) in face:
         center = (x+w//2, y+h//2)
         radii = (w//2, h//2)
-        num_lines = 36
+        num_lines = int(alpha * 0.3 + 20)
         line_length = 20 
 
         for i in range(num_lines):
@@ -61,31 +61,22 @@ def halo_effect(image, face):
                 start_point = end_point
                 
     return image 
-def run_halo(image):
+def get_face(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     face = face_classifier.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(40, 40))
-    if len(face) > 0:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        halo_image = halo_effect(image, face)
-        plt.figure(figsize=(20,10))
-        plt.imshow(halo_image)
-        plt.title("Halo Filter")
-        plt.axis('off')
-        plt.show()
-    else:
-        show_warning("No face detected")
+    return face
 
-def add_film_grain_gray(image, mean=0, sigma=5):
+def add_film_grain_gray(image, mean, sigma=5):
     #"""Add film grain (noise) to the image."""
     row, col = image.shape
-    gauss = np.random.normal(mean, sigma, (row, col)).astype(np.uint8)
+    gauss = np.random.normal(mean*0.8+20, sigma, (row, col)).astype(np.uint8)
     noisy_image = cv2.add(image, gauss)
     return noisy_image
 
 
-def add_film_grain_rgb(image, mean=0, sigma=10):
+def add_film_grain_rgb(image, mean=0, sigma=0.01):
     #"""Add film grain (noise) to the color image."""
     row, col, ch = image.shape  # Get the dimensions for a color image
     gauss = np.random.normal(mean, sigma, (row, col, ch)).astype(np.float32)
@@ -115,11 +106,11 @@ def add_vignette(image, strength=0.5):
 
     return image
 
-def film_filter(img): 
+def film_filter(img, mean): 
     #apply border
 
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    grain_gray_image = add_film_grain_gray(gray_image)
+    grain_gray_image = add_film_grain_gray(gray_image, mean)
     grain_gray_bgr = cv2.cvtColor(grain_gray_image, cv2.COLOR_GRAY2BGR)
     old_timey_image = add_vignette(grain_gray_bgr)
 
@@ -140,9 +131,9 @@ def sepia_filter(img):
     return img_sepia
 
 #grey pencil sketch effect
-def pencil_sketch_grey(img):
+def pencil_sketch_grey(img, alpha):
     #inbuilt function to create sketch effect in colour and greyscale
-    sk_gray, sk_color = cv2.pencilSketch(img, sigma_s=60, sigma_r=0.07, shade_factor=0.08) 
+    sk_gray, sk_color = cv2.pencilSketch(img, sigma_s=1, sigma_r=0.07, shade_factor=alpha/200) 
     return  sk_gray
 
 
@@ -168,7 +159,7 @@ def apply_burned_edges(image):
     # Load the mask
     mask = cv2.imread("files_for_processing/effect_assets/film2.png", 0)
     if mask is None:
-        raise FileNotFoundError(f"Mask image not found at {masked_file_path}")
+        raise FileNotFoundError(f"Mask image not found at {mask}")
 
     # Resize the mask to match the image size
     mask = cv2.resize(mask, (image.shape[1], image.shape[0]))
@@ -202,6 +193,7 @@ def overlay_on_film_frame(photo, scale_factor=1.0):
     return overlay
 
 class Ui_Dialog(object):
+    last_filter = None
     file_path = None
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -234,16 +226,22 @@ class Ui_Dialog(object):
         self.Film = QtWidgets.QPushButton(Dialog)
         self.Film.setGeometry(QtCore.QRect(880, 900, 141, 71))
         self.Film.setObjectName("Film")
-            
+        self.horizontalSlider = QtWidgets.QSlider(Dialog)
+        self.horizontalSlider.setGeometry(QtCore.QRect(230, 740, 591, 20))
+        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontalSlider.setObjectName("horizontalSlider")
+        self.horizontalSlider.setMinimum(1)
+        self.horizontalSlider.setMaximum(100)
 
         self.retranslateUi(Dialog)
         self.HaloBtn.clicked.connect(self.haloBtnClicked)
         self.UploadImageBtn.clicked.connect(self.onBrowseClicked) 
-        self.BWfilter.clicked.connect(self.TVfilter) # type: ignore
-        self.Inverted.clicked.connect(self.inverted_filter) # type: ignore
-        self.Sketchy.clicked.connect(self.sketchy_filter) # type: ignore
-        self.Old.clicked.connect(self.sepia_filter) # type: ignore
-        self.Film.clicked.connect(self.film_filter) # type: ignore
+        self.BWfilter.clicked.connect(self.TVfilter) 
+        self.Inverted.clicked.connect(self.inverted_filter) 
+        self.Sketchy.clicked.connect(self.sketchy_filter)
+        self.Old.clicked.connect(self.sepia_filter) 
+        #self.Film.clicked.connect() 
+        self.horizontalSlider.valueChanged['int'].connect(self.sliderValueChanged)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
@@ -251,10 +249,10 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.HaloBtn.setText(_translate("Dialog", "Show Halo"))
         self.UploadImageBtn.setText(_translate("Dialog", "Upload Image"))
-        self.BWfilter.setText(_translate("Dialog", "50s TV filter"))
+        self.BWfilter.setText(_translate("Dialog", "80s TV filter"))
         self.Inverted.setText(_translate("Dialog", "Inverted Filter"))
         self.Sketchy.setText(_translate("Dialog", "Sketchy Filter"))
-        self.Old.setText(_translate("Dialog", "Old Filter"))
+        self.Old.setText(_translate("Dialog", "Sepia Filter"))
         self.Film.setText(_translate("Dialog", "Film Filter"))
 
     def onBrowseClicked(self):
@@ -266,84 +264,135 @@ class Ui_Dialog(object):
         if file_dialog.exec_():
             self.file_path = file_dialog.selectedFiles()[0]
             self.ImageLabel.setPixmap(QtGui.QPixmap(self.file_path))
+            self.last_filter = None
 
     def haloBtnClicked(self):
         
         if self.file_path:
-            plt.close()
-            run_halo(cv2.imread(self.file_path))
+            face = get_face(cv2.imread(self.file_path))
+            if len(face) > 0:
+                self.tab_count = plt.get_fignums()
+                print(self.tab_count)
+                self.face = face
+                image = cv2.cvtColor(cv2.imread(self.file_path), cv2.COLOR_BGR2RGB)
+                halo_image = halo_effect(image, face, self.horizontalSlider.value())
+                
+                plt.clf()
+                plt.imshow(halo_image)
+                plt.title("Halo Filter")
+                plt.axis('off')
+                self.show_plot()
+                self.last_filter = "halo"
+            else:
+                show_warning("No face detected")
+            
         else:
             show_warning("Please upload an image first.")
+            
 
     def TVfilter(self):
         if self.file_path:
-            plt.close()
-            filmed = film_filter(cv2.imread(self.file_path))
+            filmed = film_filter(cv2.imread(self.file_path), self.horizontalSlider.value())
+            self.tab_count = plt.get_fignums()
+            plt.clf()
             plt.imshow(filmed)
             plt.axis("off")
-            plt.title("")
-            plt.show()
+            plt.title("TV filter")
+            self.show_plot()
+            self.last_filter = "TV"
         else:
             show_warning("Please upload an image first.")
 
     def inverted_filter(self):
         if self.file_path:
-            plt.close()
             a9 = invert(cv2.imread(self.file_path))
             image_rgb = cv2.cvtColor(a9, cv2.COLOR_BGR2RGB) # cv2 is bgr whilte matpllot lib is rgb 
+            self.tab_count = plt.get_fignums()
+            plt.clf()
             plt.imshow(image_rgb)
             plt.title("Inverted Filter")
             plt.axis("off")
-            plt.show()
+            self.show_plot()
+            self.last_filter = "inverted"
         else:
             show_warning("Please upload an image first.")
     
     def sketchy_filter(self):
         if self.file_path:
-            plt.close()
-            a6 = pencil_sketch_grey(cv2.imread(self.file_path)) 
-            #pil_image = Image.fromarray(a6)
-            plt.imshow(a6, cmap='gray')
+            sketchy_image = pencil_sketch_grey(cv2.imread(self.file_path), self.horizontalSlider.value()) 
+            self.tab_count = plt.get_fignums()
+            plt.clf()
+            plt.imshow(sketchy_image, cmap='gray')
             plt.title("Sketchy Filter")
             plt.axis("off")
-            plt.show()
+            self.show_plot()
+            self.last_filter = "sketchy"
         else:
             show_warning("Please upload an image first.")
     
     def sepia_filter(self):
         if self.file_path:
-            plt.close()
             sepia_bovik = sepia_filter(cv2.imread(self.file_path))
             sepia_image_rgb = cv2.cvtColor(sepia_bovik, cv2.COLOR_BGR2RGB)
             sepia_noise = add_film_grain_rgb(sepia_image_rgb)
+            self.tab_count = plt.get_fignums()
+            plt.clf()
             #plt.imshow(sepia_image_rgb)
             plt.imshow(sepia_noise)
 
             plt.title("Sepia Filter")
             plt.axis("off")
-            plt.show()
+            self.show_plot()
+            self.last_filter = "sepia"
+
         else:
             show_warning("Please upload an image first.")
+            self.show_plot()
 
     def film_filter(self):
         if self.file_path:
-            plt.close()
             filmed_burned = overlay_on_film_frame(cv2.imread(self.file_path))
+            self.tab_count = plt.get_fignums()
+            plt.clf()
             plt.imshow(filmed_burned)
-
             plt.title("Film Filter")
             plt.axis("off")
-            plt.show()
-
+            self.show_plot()
+            self.last_filter = "film"
 
             img_burn = apply_burned_edges(filmed_burned)
             plt.imshow(img_burn)
             plt.title("alte")
             plt.axis("off")
-            plt.show()
+            self.show_plot()
         else:
             show_warning("Please upload an image first.")
     
+    def show_plot(self):
+        if self.tab_count:
+            plt.draw()
+        else:
+            plt.show()
+
+    def sliderValueChanged(self):
+        if plt.get_fignums():
+            plt.clf()
+            if self.last_filter == "TV":
+                plt.imshow(film_filter(cv2.imread(self.file_path), self.horizontalSlider.value()))
+                plt.axis("off")
+                plt.title("TV filter")
+            elif self.last_filter == "sketchy":
+                plt.imshow(pencil_sketch_grey(cv2.imread(self.file_path), self.horizontalSlider.value()), cmap='gray')
+                plt.title("Sketchy Filter")
+                plt.axis("off")
+            elif self.last_filter == "halo":
+                plt.imshow(halo_effect(cv2.cvtColor(cv2.imread(self.file_path), cv2.COLOR_BGR2RGB), self.face, self.horizontalSlider.value()))
+                plt.title("Halo Filter")
+                plt.axis('off')
+            plt.draw()
+
+
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
