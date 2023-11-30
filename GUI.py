@@ -389,7 +389,10 @@ class Ui_Dialog(object):
                 plt.imshow(halo_effect(cv2.cvtColor(cv2.imread(self.file_path), cv2.COLOR_BGR2RGB), self.face, self.horizontalSlider.value()))
                 plt.title("Halo Filter")
                 plt.axis('off')
-            plt.draw()
+            plt.draw() 
+
+
+
 
 
 
